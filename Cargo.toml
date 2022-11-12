@@ -1,0 +1,28 @@
+[package]
+name = "hackdose-server"
+version = "0.1.0"
+edition = "2021"
+authors = ["Philipp Vollmer"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/torfmaster/hackdose-server"
+description = "A server to control smart plugs using data from smart meters"
+
+[dependencies]
+byteorder = "1.4.3"
+chrono = "0.4.22"
+futures = "0.3.23"
+gpio-cdev = "0.5.1"
+tokio = { version= "1.20.1", features = ["full"]  }
+tokio-serial = "5.4.3"
+tplinker = "0.4.4"
+warp = "0.3.2"
+hackdose-sml-parser = { version = "0.1.0" }
+plotters = { version= "0.3.4", features=["svg_backend", "chrono", "line_series"], default-features=false}
+rand = "0.8.5"
+serde = { version="1.0.147", features=["serde_derive"] }
+serde_yaml = "0.9.14"
+clap = { version="4.0.23", features=["derive"]}
+
+[profile.release]
+lto = true

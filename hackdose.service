@@ -1,0 +1,10 @@
+[Unit]
+Description=Hackdose
+
+[Service]
+ExecStart=/root/hackdose --config /root/config.yaml
+Restart=on-failure
+EnvironmentFile=/etc/environment
+
+[Install]
+WantedBy=multi-user.target
