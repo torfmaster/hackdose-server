@@ -1,0 +1,49 @@
+name: Artifacts
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt install gcc-riscv64-linux-gnu
+          sudo apt-get install gcc-arm-linux-gnueabihf
+          rustup target add riscv64gc-unknown-linux-gnu
+          rustup target add armv7-unknown-linux-musleabihf
+
+      - name: Build Cache for raspberry pi
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build Artifact for mango pi
+        run: |
+          cargo build --target=riscv64gc-unknown-linux-gnu --release
+
+      - name: Build Artifact for raspberry pi
+        run: |
+          cargo build --target=armv7-unknown-linux-musleabihf --release
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: mango-pi-executable
+          path: target/riscv64gc-unknown-linux-gnu/release/hackdose-server
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: raspberry-pi-executable
+          path: target/armv7-unknown-linux-musleabihf/release/hackdose-server

@@ -41,6 +41,9 @@ You can e.g. use this to charge your Laptop battery, your smart phone, or your E
 
 # Setup
 
+You can either compile your yourself or check out one of the latest artifacts
+[here](https://github.com/torfmaster/hackdose-server/actions/workflows/release.yaml).
+
 ## Install compiler toolchain
 
 ```bash
