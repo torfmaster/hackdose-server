@@ -69,6 +69,6 @@ async fn main() {
     tokio::task::spawn(
         async move { read_smart_meter(&mut tx, mutex1.clone(), &config.clone()).await },
     );
-    tokio::task::spawn(async move { serve_rest_endpoint(mutex2.clone(), &config3.clone()).await });
-    control_actors(&mut rx, &config2.clone()).await;
+    tokio::task::spawn(async move { control_actors(&mut rx, &config2.clone()).await });
+    serve_rest_endpoint(mutex2.clone(), &config3.clone()).await;
 }

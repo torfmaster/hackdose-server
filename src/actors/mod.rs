@@ -1,5 +1,6 @@
 use chrono::{DateTime, Duration, Utc};
 use tokio::sync::mpsc::Receiver;
+use tplinker::capabilities::Switch;
 use tplinker::devices::HS100;
 
 use crate::Configuration;
@@ -25,13 +26,14 @@ pub(crate) async fn control_actors(rx: &mut Receiver<i32>, config: &Configuratio
         })
         .collect::<Vec<_>>();
 
-    use tplinker::capabilities::Switch;
+    if devs.len() == 0 {
+        return;
+    }
+
     let mut on = false;
 
-    // switch on random device
-    let random_number = rand::random::<usize>() % devs.len();
-
     while let Some(received) = rx.recv().await {
+        let random_number = rand::random::<usize>() % devs.len();
         let dev = devs.get_mut(random_number).unwrap();
         let ActorState {
             address,
