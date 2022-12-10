@@ -1,6 +1,7 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use futures::{future::BoxFuture, FutureExt};
+use hackdose_sml_parser::{domain::AnyValue, obis::Obis};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     sync::{mpsc::Sender, Mutex},
@@ -16,7 +17,7 @@ pub(crate) mod envelope;
 
 pub(crate) async fn read_smart_meter(
     tx: &mut Sender<i32>,
-    mutex: Arc<Mutex<i32>>,
+    mutex: Arc<Mutex<HashMap<Obis, AnyValue>>>,
     config: &Configuration,
 ) {
     // serial
@@ -34,7 +35,7 @@ pub(crate) fn handle_data<'a>(
     builder: &'a mut SMLMessageBuilder,
     buf: &'a [u8],
     tx: &'a mut Sender<i32>,
-    mutex: Arc<Mutex<i32>>,
+    mutex: Arc<Mutex<HashMap<Obis, AnyValue>>>,
     config: &'a Configuration,
 ) -> BoxFuture<'a, ()> {
     async move {
@@ -42,7 +43,7 @@ pub(crate) fn handle_data<'a>(
 
         match builder {
             SMLMessageBuilder::Complete { ref data, ref rest } => {
-                let watts = find_watts(data);
+                let watts = find_watts(data, mutex.clone()).await;
 
                 match watts {
                     Some(watts) => {
@@ -61,8 +62,6 @@ pub(crate) fn handle_data<'a>(
                             Err(_) => (),
                         }
                         tx.send(watts).await.unwrap();
-                        let mut value = mutex.lock().await;
-                        *value = watts;
                     }
                     None => {}
                 }

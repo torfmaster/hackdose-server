@@ -1,8 +1,10 @@
 use clap::Parser;
+use hackdose_sml_parser::domain::AnyValue;
+use hackdose_sml_parser::obis::Obis;
 use serde::Deserialize;
 use smart_meter::read_smart_meter;
-use std::path::PathBuf;
 use std::sync::Arc;
+use std::{collections::HashMap, path::PathBuf};
 use tokio::fs::File;
 use tokio::io::BufReader;
 
@@ -60,7 +62,7 @@ async fn main() {
     output_handle.set_value(1).unwrap();
 
     let (mut tx, mut rx) = tokio::sync::mpsc::channel::<i32>(100);
-    let mutex = Arc::new(tokio::sync::Mutex::new(0i32));
+    let mutex = Arc::new(tokio::sync::Mutex::new(HashMap::<Obis, AnyValue>::new()));
 
     let mutex1 = mutex.clone();
     let mutex2 = mutex.clone();

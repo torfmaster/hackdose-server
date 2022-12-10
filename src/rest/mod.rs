@@ -1,5 +1,6 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
+use hackdose_sml_parser::{domain::AnyValue, obis::Obis};
 use tokio::sync::Mutex;
 use warp::Filter;
 
@@ -9,7 +10,10 @@ use self::visualisation::render_image;
 
 mod visualisation;
 
-pub(crate) async fn serve_rest_endpoint(mutex: Arc<Mutex<i32>>, config: &Configuration) {
+pub(crate) async fn serve_rest_endpoint(
+    mutex: Arc<Mutex<HashMap<Obis, AnyValue>>>,
+    config: &Configuration,
+) {
     let owned_config = config.clone();
     let energy = warp::path("energy")
         .map(move || mutex.clone())
@@ -22,11 +26,10 @@ pub(crate) async fn serve_rest_endpoint(mutex: Arc<Mutex<i32>>, config: &Configu
         .await;
 }
 
-async fn return_energy(m: Arc<Mutex<i32>>) -> Result<Box<dyn warp::Reply>, warp::Rejection> {
-    Ok(Box::new(warp::reply::json(&format!(
-        "Current Consumption: {}",
-        m.lock().await
-    ))))
+async fn return_energy(
+    m: Arc<Mutex<HashMap<Obis, AnyValue>>>,
+) -> Result<Box<dyn warp::Reply>, warp::Rejection> {
+    Ok(Box::new(warp::reply::json(&*m.lock().await)))
 }
 
 async fn image(config: Configuration) -> Result<Box<dyn warp::Reply>, warp::Rejection> {

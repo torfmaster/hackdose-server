@@ -6,3 +6,4 @@ actors:
 ttys_location: /dev/ttyS0
 gpio_location: /dev/gpiochip0
 gpio_power_pin: 38 # Pin 35 in Mango PI
+log_location: /root/energy.log
