@@ -16,6 +16,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt update
           sudo apt install gcc-riscv64-linux-gnu
           sudo apt-get install gcc-arm-linux-gnueabihf
           rustup target add riscv64gc-unknown-linux-gnu
