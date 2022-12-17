@@ -1,7 +1,9 @@
 use std::{collections::HashMap, sync::Arc};
 
 use hackdose_sml_parser::{
-    domain::AnyValue, domain::SmlMessageEnvelope, obis::Obis, parser::parse_body,
+    domain::AnyValue,
+    domain::{SmlMessageEnvelope, SmlMessages},
+    obis::Obis,
 };
 use tokio::sync::Mutex;
 
@@ -25,10 +27,11 @@ impl Scale for AnyValue {
     }
 }
 
-pub async fn find_watts(body: &[u8], mutex: Arc<Mutex<HashMap<Obis, AnyValue>>>) -> Option<i32> {
-    let result = parse_body(body);
-    let result = result.ok()?;
-    for list in result.messages {
+pub async fn find_watts(
+    messages: &SmlMessages,
+    mutex: Arc<Mutex<HashMap<Obis, AnyValue>>>,
+) -> Option<i32> {
+    for list in &messages.messages {
         match list {
             SmlMessageEnvelope::GetOpenResponse(_) => continue,
             SmlMessageEnvelope::GetListResponse(body) => {

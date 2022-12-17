@@ -1,8 +1,9 @@
+use business::handle_power_events;
 use clap::Parser;
 use hackdose_sml_parser::domain::AnyValue;
 use hackdose_sml_parser::obis::Obis;
 use serde::Deserialize;
-use smart_meter::read_smart_meter;
+use smart_meter::{sml_message_stream, uart_ir_sensor_data_stream};
 use std::sync::Arc;
 use std::{collections::HashMap, path::PathBuf};
 use tokio::fs::File;
@@ -14,6 +15,7 @@ use rest::serve_rest_endpoint;
 use tokio::io::AsyncReadExt;
 
 mod actors;
+mod business;
 mod rest;
 mod smart_meter;
 
@@ -61,6 +63,9 @@ async fn main() {
 
     output_handle.set_value(1).unwrap();
 
+    let stream = uart_ir_sensor_data_stream(&config);
+    let power_events = sml_message_stream(stream);
+
     let (mut tx, mut rx) = tokio::sync::mpsc::channel::<i32>(100);
     let mutex = Arc::new(tokio::sync::Mutex::new(HashMap::<Obis, AnyValue>::new()));
 
@@ -68,9 +73,9 @@ async fn main() {
     let mutex2 = mutex.clone();
     let config2 = config.clone();
     let config3 = config.clone();
-    tokio::task::spawn(
-        async move { read_smart_meter(&mut tx, mutex1.clone(), &config.clone()).await },
-    );
+    tokio::task::spawn(async move {
+        handle_power_events(&mut tx, mutex1.clone(), &config.clone(), power_events).await
+    });
     tokio::task::spawn(async move { control_actors(&mut rx, &config2.clone()).await });
     serve_rest_endpoint(mutex2.clone(), &config3.clone()).await;
 }
