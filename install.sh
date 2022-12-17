@@ -1,4 +1,6 @@
 #!/bin/bash
+set -eux
+
 source .env
 cargo build --target=$TARGET --release
 sshpass -p $PI_PASSWORD ssh -p $PI_SSH_PORT $PI_USER@$PI_HOST 'systemctl stop hackdose.service'

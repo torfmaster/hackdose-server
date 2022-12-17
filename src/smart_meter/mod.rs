@@ -29,8 +29,8 @@ pub(crate) fn sml_message_stream(
     let mut builder = SMLMessageBuilder::Empty;
 
     tokio::spawn(async move {
-        while let Ok(_) = stream.read(&mut buf).await {
-            emit_message(&mut builder, &buf, tx.clone()).await;
+        while let Ok(n) = stream.read(&mut buf).await {
+            emit_message(&mut builder, &buf[..n], tx.clone()).await;
         }
     });
 
