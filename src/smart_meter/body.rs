@@ -41,16 +41,14 @@ pub async fn find_watts(body: &[u8], mutex: Arc<Mutex<HashMap<Obis, AnyValue>>>)
                     })
                     .collect::<Vec<_>>();
 
+                let mut value_list = mutex.lock().await;
                 for (o, v, scaler) in identified.iter() {
-                    mutex
-                        .lock()
-                        .await
-                        .insert(o.clone(), v.scale(scaler.unwrap_or(0)).clone());
+                    value_list.insert(o.clone(), v.scale(scaler.unwrap_or(0)).clone());
                 }
 
                 let usage = identified
                     .iter()
-                    .find(|(o, v, scaler)| o == &Obis::SumActiveInstantaneousPower)
+                    .find(|(o, _, _)| o == &Obis::SumActiveInstantaneousPower)
                     .map(|(_, v, scaler)| v.scale(scaler.unwrap_or(0)));
 
                 if let Some(usage) = usage {

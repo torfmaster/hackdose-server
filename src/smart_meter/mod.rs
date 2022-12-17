@@ -1,6 +1,5 @@
 use std::{collections::HashMap, sync::Arc};
 
-use futures::{future::BoxFuture, FutureExt};
 use hackdose_sml_parser::{domain::AnyValue, obis::Obis};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -31,15 +30,17 @@ pub(crate) async fn read_smart_meter(
     }
 }
 
-pub(crate) fn handle_data<'a>(
+pub(crate) async fn handle_data<'a>(
     builder: &'a mut SMLMessageBuilder,
     buf: &'a [u8],
     tx: &'a mut Sender<i32>,
     mutex: Arc<Mutex<HashMap<Obis, AnyValue>>>,
     config: &'a Configuration,
-) -> BoxFuture<'a, ()> {
-    async move {
-        builder.record(buf);
+) {
+    let mut to_process = buf.to_vec();
+    while to_process.len() > 0 {
+        builder.record(&to_process);
+        to_process = vec![];
 
         match builder {
             SMLMessageBuilder::Complete { ref data, ref rest } => {
@@ -68,9 +69,8 @@ pub(crate) fn handle_data<'a>(
                 if rest.len() == 0 {
                     *builder = SMLMessageBuilder::Empty;
                 } else {
-                    let rest = rest.clone();
+                    to_process = rest.to_vec();
                     *builder = SMLMessageBuilder::Empty;
-                    handle_data(builder, &mut rest.clone(), tx, mutex.clone(), config).await;
                 }
             }
             SMLMessageBuilder::Empty => (),
@@ -78,5 +78,4 @@ pub(crate) fn handle_data<'a>(
             SMLMessageBuilder::Recording(_) => (),
         }
     }
-    .boxed()
 }
