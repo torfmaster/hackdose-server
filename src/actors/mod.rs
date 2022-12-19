@@ -58,8 +58,6 @@ pub(crate) async fn control_actors(rx: &mut Receiver<i32>, config: &Configuratio
                     if diff > Duration::minutes(*duration_minutes as i64) {
                         on = should_be_on;
                         *last_set = Some(now.clone());
-                        // naive debounce
-                        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
                     }
                 } else {
                     on = should_be_on;

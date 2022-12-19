@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use hackdose_sml_parser::{domain::AnyValue, obis::Obis};
+use hackdose_sml_parser::application::{domain::AnyValue, obis::Obis};
 use tokio::sync::Mutex;
 use warp::Filter;
 

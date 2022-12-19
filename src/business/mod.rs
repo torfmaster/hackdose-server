@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use hackdose_sml_parser::{
+use hackdose_sml_parser::application::{
     domain::{AnyValue, SmlMessages},
     obis::Obis,
 };

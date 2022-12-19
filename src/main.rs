@@ -1,9 +1,10 @@
 use business::handle_power_events;
 use clap::Parser;
-use hackdose_sml_parser::domain::AnyValue;
-use hackdose_sml_parser::obis::Obis;
+use hackdose_sml_parser::application::domain::AnyValue;
+use hackdose_sml_parser::application::obis::Obis;
+use hackdose_sml_parser::message_stream::sml_message_stream;
 use serde::Deserialize;
-use smart_meter::{sml_message_stream, uart_ir_sensor_data_stream};
+use smart_meter::uart_ir_sensor_data_stream;
 use std::sync::Arc;
 use std::{collections::HashMap, path::PathBuf};
 use tokio::fs::File;
@@ -43,7 +44,7 @@ struct Args {
     config: PathBuf,
 }
 
-#[tokio::main]
+#[tokio::main(worker_threads = 2)]
 async fn main() {
     let args = Args::parse();
 
