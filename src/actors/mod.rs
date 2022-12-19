@@ -1,5 +1,6 @@
 use chrono::{DateTime, Duration, Utc};
 use tokio::sync::mpsc::Receiver;
+use tokio::task::spawn_blocking;
 use tplinker::capabilities::Switch;
 use tplinker::devices::HS100;
 
@@ -43,32 +44,37 @@ pub(crate) async fn control_actors(rx: &mut Receiver<i32>, config: &Configuratio
             last_set,
         } = dev;
 
-        let dev = HS100::new(&address);
-
-        if let Ok(dev) = dev {
-            let should_be_on = if !on {
-                received < *enable_threshold as i32
-            } else {
-                !(received > *disable_threshold as i32)
-            };
-            if should_be_on != on {
-                let now = chrono::Utc::now();
-                if let Some(last_set_inner) = last_set {
-                    let diff = now - *last_set_inner;
-                    if diff > Duration::minutes(*duration_minutes as i64) {
-                        on = should_be_on;
-                        *last_set = Some(now.clone());
-                    }
-                } else {
+        let should_be_on = if !on {
+            received < *enable_threshold as i32
+        } else {
+            !(received > *disable_threshold as i32)
+        };
+        if should_be_on != on {
+            let now = chrono::Utc::now();
+            if let Some(last_set_inner) = last_set {
+                let diff = now - *last_set_inner;
+                if diff > Duration::minutes(*duration_minutes as i64) {
                     on = should_be_on;
-                    *last_set = Some(chrono::Utc::now());
+                    *last_set = Some(now.clone());
                 }
-            }
-            if on {
-                let _ = dev.switch_on();
             } else {
-                let _ = dev.switch_off();
+                on = should_be_on;
+                *last_set = Some(chrono::Utc::now());
             }
         }
+        let address = address.clone();
+
+        spawn_blocking(move || {
+            let dev = HS100::new(&address);
+            if let Ok(dev) = dev {
+                if on {
+                    let _ = dev.switch_on();
+                } else {
+                    let _ = dev.switch_off();
+                }
+            }
+        })
+        .await
+        .unwrap();
     }
 }
