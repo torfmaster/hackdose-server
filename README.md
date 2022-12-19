@@ -1,3 +1,5 @@
+This repo has been archived: The place for development is now [here](https://github.com/torfmaster/hackdose).
+
 # About Hackdose
 
 This is the hackdose project, a project for making better user of your micro solar power plants.
